@@ -168,7 +168,11 @@ JitCodeCache* JitCodeCache::Create(size_t initial_capacity,
   // Generating debug information is for using the Linux perf tool on
   // host which does not work with ashmem.
   // Also, target linux does not support ashmem.
+#ifdef NEXELL_CRIU // for CRIU
+  bool use_ashmem = false;
+#else
   bool use_ashmem = !generate_debug_info && !kIsTargetLinux;
+#endif
 
   // With 'perf', we want a 1-1 mapping between an address and a method.
   bool garbage_collect_code = !generate_debug_info;

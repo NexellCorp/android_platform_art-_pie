@@ -419,6 +419,13 @@ cc_defaults {
     // Note: runtime_options.h depends on cmdline. But we don't really want to export this
     //       generically. dex2oat takes care of it itself.
     export_shared_lib_headers: ["libbase"],
+    product_variables: {
+        criu: {
+            cflags: [
+                "-DNEXELL_CRIU=1"
+            ]
+        },
+    },
 }
 
 gensrcs {

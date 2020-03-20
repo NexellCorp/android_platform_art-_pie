@@ -301,7 +301,12 @@ MemMap* MemMap::MapAnonymous(const char* name,
 #ifndef __LP64__
   UNUSED(low_4gb);
 #endif
+#ifdef NEXELL_CRIU // for CRIU
+  use_ashmem = false;
+#else
   use_ashmem = use_ashmem && !kIsTargetLinux;
+#endif
+
   if (byte_count == 0) {
     return new MemMap(name, nullptr, 0, nullptr, 0, prot, false);
   }
@@ -629,7 +634,11 @@ MemMap::MemMap(const std::string& name, uint8_t* begin, size_t size, void* base_
 
 MemMap* MemMap::RemapAtEnd(uint8_t* new_end, const char* tail_name, int tail_prot,
                            std::string* error_msg, bool use_ashmem) {
+#ifdef NEXELL_CRIU // for CRIU
+  use_ashmem = false;
+#else
   use_ashmem = use_ashmem && !kIsTargetLinux;
+#endif
   DCHECK_GE(new_end, Begin());
   DCHECK_LE(new_end, End());
   DCHECK_LE(begin_ + size_, reinterpret_cast<uint8_t*>(base_begin_) + base_size_);
