@@ -51,6 +51,10 @@
 #include "runtime.h"
 #include "space-inl.h"
 
+#ifdef ART_TARGET_ANDROID
+#include "cutils/properties.h"
+#endif
+
 namespace art {
 namespace gc {
 namespace space {
@@ -1533,13 +1537,26 @@ std::unique_ptr<ImageSpace> ImageSpace::CreateBootImage(const char* image_locati
                                            &cache_filename);
 
   bool dex2oat_enabled = Runtime::Current()->IsImageDex2OatEnabled();
+#ifdef ART_TARGET_ANDROID
+  bool isAuto = false;
+  char value[PROPERTY_VALUE_MAX];
+  property_get("ro.quickboot.art_verify", value, "0");
+  if (atoi(value)) {
+    isAuto = true;
+  }
+#endif
 
   if (is_zygote && dalvik_cache_exists && !secondary_image) {
     // Extra checks for the zygote. These only apply when loading the first image, explained below.
     DCHECK(!dalvik_cache.empty());
     std::string local_error_msg;
     // All secondary images are verified when the primary image is verified.
-    bool verified = VerifyImage(image_location, dalvik_cache.c_str(), image_isa, &local_error_msg);
+
+    bool verified = true;
+    #ifdef ART_TARGET_ANDROID
+        if (!isAuto)
+    #endif
+          verified = VerifyImage(image_location, dalvik_cache.c_str(), image_isa, &local_error_msg);
     // If we prune for space at a secondary image, we may end up in a crash loop with the _exit
     // path.
     bool check_space = CheckSpace(dalvik_cache, &local_error_msg);
